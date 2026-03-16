@@ -1,4 +1,4 @@
-import { SALT_ROUND } from "../../../../config/config.service.js";
+import { securityConfig } from "../../../../config/config.service.js";
 import { genSalt, hash, compare } from "bcrypt";
 
 export const generateHash = async (

@@ -57,6 +57,16 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    otp: String,
+    otpExpires: Date,
+    otpAttempts: {
+      type: Number,
+      default: 0,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     Collection: "Saraha_USERS",

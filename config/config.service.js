@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { config } from "dotenv";
+import fs from "fs";
 
 export const NODE_ENV = process.env.NODE_ENV || "development";
 
@@ -12,10 +13,33 @@ config({
   path: resolve(`./config/${envPath[NODE_ENV]}`),
 });
 
-export const port = process.env.PORT ?? 7000;
-export const DB_URI = process.env.DB_URI;
+// ================= APP =================
+export const appConfig = {
+  port: process.env.PORT || 3000,
+};
 
-export const SALT_ROUND = Number(process.env.SALT_ROUND) || 10;
-export const IV_LENGTH = Number(process.env.IV_LENGTH) || 16;
+// ================= DB =================
+export const dbConfig = {
+  uri: process.env.DB_URI,
+};
 
-export const ENC_SECRET_KEY = process.env.ENC_SECRET_KEY;
+// ================= SECURITY =================
+export const securityConfig = {
+  saltRounds: Number(process.env.SALT_ROUND) || 10,
+  ivLength: Number(process.env.IV_LENGTH) || 16,
+  encKey: process.env.ENC_SECRET_KEY,
+};
+
+// ================= JWT (RS256) =================
+export const jwtConfig = {
+  privateKey: fs.readFileSync("./config/private.key", "utf8"),
+  publicKey: fs.readFileSync("./config/public.key", "utf8"),
+  accessExpiresIn: "15m",
+  refreshExpiresIn: "7d",
+};
+
+// ================= EMAIL =================
+export const emailConfig = {
+  user: process.env.EMAIL_USER,
+  pass: process.env.EMAIL_PASS,
+};

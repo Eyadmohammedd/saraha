@@ -7,8 +7,7 @@ from "../../common/utils/Security/encryption.security.js";
 import { generateAccessToken, generateRefreshToken } 
 from "../../common/utils/Security/token.security.js";
 
-import { sendEmail } from "./email.service.js";
-
+import { sendEmail, generateOTP } from "./email.service.js";
 
 import { findOne, create, findOneAndUpdate } 
 from "../../DB/model/database.repository.js";
@@ -16,32 +15,23 @@ from "../../DB/model/database.repository.js";
 import { User } 
 from "../../DB/model/user.model.js";
 
-
 // ================= SIGNUP =================
 export const signup = async (inputs) => {
   const { firstName, lastName, email, password, phone } = inputs;
 
-  // check existing user
   const existingUser = await findOne({
     model: User,
     filter: { email },
   });
 
-  if (existingUser) {
-    throw new Error("Email already exists");
-  }
+  if (existingUser) throw new Error("Email already exists");
 
-  // hash password
   const hashedPassword = await generateHash(password);
-
-  // encrypt phone
   const encryptedPhone = await generateEncryption(phone);
 
-  // generate OTP
-  const otp = Math.floor(100000 + Math.random() * 900000);
+  const otp = generateOTP();
 
-  // create user
-  const user = await create({
+  await create({
     model: User,
     data: {
       firstName,
@@ -50,21 +40,20 @@ export const signup = async (inputs) => {
       password: hashedPassword,
       phone: JSON.stringify(encryptedPhone),
       otp,
-      otpExpires: Date.now() + 10 * 60 * 1000, // 10 min
+      otpExpires: Date.now() + 10 * 60 * 1000,
+      otpAttempts: 0,
       isVerified: false,
     },
   });
 
-  // send OTP email
-  await sendEmail(
-    email,
-    "Verify your account",
-    `<h2>Your OTP is: ${otp}</h2>`
-  );
+  await sendEmail({
+    to: email,
+    subject: "Verify your account",
+    html: `<h2>Your OTP is: ${otp}</h2>`,
+  });
 
-  return { message: "Signup successful, please verify OTP" };
+  return { message: "Signup successful, check your email" };
 };
-
 
 // ================= VERIFY OTP =================
 export const verifyOtp = async ({ email, otp }) => {
@@ -76,9 +65,18 @@ export const verifyOtp = async ({ email, otp }) => {
 
   if (!user) throw new Error("User not found");
 
-  if (user.isVerified) throw new Error("Account already verified");
+  if (user.isVerified) throw new Error("Already verified");
 
-  if (user.otp !== Number(otp)) {
+  if (user.otpAttempts >= 5) {
+    throw new Error("Too many attempts");
+  }
+
+  if (user.otp !== otp) {
+    await findOneAndUpdate({
+      model: User,
+      filter: { email },
+      update: { $inc: { otpAttempts: 1 } },
+    });
     throw new Error("Invalid OTP");
   }
 
@@ -93,12 +91,12 @@ export const verifyOtp = async ({ email, otp }) => {
       isVerified: true,
       otp: null,
       otpExpires: null,
+      otpAttempts: 0,
     },
   });
 
-  return { message: "Account verified successfully" };
+  return { message: "Verified successfully" };
 };
-
 
 // ================= LOGIN =================
 export const login = async ({ email, password }) => {
@@ -111,12 +109,11 @@ export const login = async ({ email, password }) => {
   if (!user) throw new Error("Email not found");
 
   if (!user.isVerified) {
-    throw new Error("Please verify your account first");
+    throw new Error("Verify your account first");
   }
 
   const match = await compareHash(password, user.password);
-
-  if (!match) throw new Error("Incorrect password");
+  if (!match) throw new Error("Wrong password");
 
   const accessToken = generateAccessToken({
     id: user._id,
@@ -127,8 +124,5 @@ export const login = async ({ email, password }) => {
     id: user._id,
   });
 
-  return {
-    accessToken,
-    refreshToken,
-  };
+  return { accessToken, refreshToken };
 };

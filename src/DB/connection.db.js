@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 import { User } from "./model/index.js";
-import { DB_URI } from "../../config/config.service.js";
+import { dbConfig } from "../../config/config.service.js";
 
 export const connectDB = async () => {
   try {
-    await mongoose.connect(DB_URI);
+    await mongoose.connect(dbConfig.uri);
 
     console.log("DB connected successfully 🤩");
 

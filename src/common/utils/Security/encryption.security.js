@@ -1,6 +1,5 @@
 import crypto from "node:crypto";
-import { IV_LENGTH, ENC_SECRET_KEY } 
-from "../../../../config/config.service.js";
+import { securityConfig } from "../../../../config/config.service.js";
 
 export const generateEncryption = async (plainText) => {
 
@@ -8,15 +7,15 @@ export const generateEncryption = async (plainText) => {
     throw new Error("Plain text must be a valid string");
   }
 
-  if (!ENC_SECRET_KEY || ENC_SECRET_KEY.length !== 32) {
+  if (!securityConfig.encKey || securityConfig.encKey.length !== 32) {
     throw new Error("ENC_SECRET_KEY must be 32 characters long");
   }
 
-  const IV = crypto.randomBytes(IV_LENGTH);
+  const IV = crypto.randomBytes(securityConfig.ivLength);
 
   const cipher = crypto.createCipheriv(
     "aes-256-cbc",
-    Buffer.from(ENC_SECRET_KEY),
+    Buffer.from(securityConfig.encKey),
     IV
   );
 
@@ -28,13 +27,14 @@ export const generateEncryption = async (plainText) => {
     encryptedData: encrypted
   };
 };
+
 export const decryptData = (payload) => {
 
   const { iv, encryptedData } = JSON.parse(payload);
 
   const decipher = crypto.createDecipheriv(
     "aes-256-cbc",
-    Buffer.from(ENC_SECRET_KEY),
+    Buffer.from(securityConfig.encKey),
     Buffer.from(iv, "hex")
   );
 
