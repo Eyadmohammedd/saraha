@@ -1,45 +1,44 @@
-import { NODE_ENV, appConfig } from '../config/config.service.js'
-import { authRouter, userRouter } from './modules/index.js'
+import { NODE_ENV, appConfig } from "../config/config.service.js";
+import { authRouter, userRouter } from "./modules/index.js";
 import { connectDB } from "./DB/connection.db.js";
 
-import express from 'express'
+import express from "express";
 
 async function bootstrap() {
-    const app = express()
+  const app = express();
 
-    // middleware
-    app.use(express.json())
+  // middleware
+  app.use(express.json());
 
-    // DB
-    await connectDB()
+  // DB
+  await connectDB();
 
-    // routes
-    app.get('/', (req, res) => res.send('Hello World!'))
+  // routes
+  app.get("/", (req, res) => res.send("Hello World!"));
+  app.use("/uploads", express.static("uploads"));
+  app.use("/auth", authRouter);
+  app.use("/user", userRouter);
+  // ❌ any route not found
+  app.use((req, res) => {
+    return res.status(404).json({ message: "Invalid application routing" });
+  });
 
-    app.use('/auth', authRouter)
-    app.use('/user', userRouter)
+  // error handling
+  app.use((error, req, res, next) => {
+    const status = error.cause?.status ?? 500;
 
-    // ❌ any route not found
-   app.use((req, res) => {
-    return res.status(404).json({ message: "Invalid application routing" })
-})
+    return res.status(status).json({
+      error_message:
+        status === 500
+          ? "something went wrong"
+          : (error.message ?? "something went wrong"),
+      stack: NODE_ENV === "development" ? error.stack : undefined,
+    });
+  });
 
-    // error handling
-    app.use((error, req, res, next) => {
-        const status = error.cause?.status ?? 500
-
-        return res.status(status).json({
-            error_message:
-                status === 500
-                    ? 'something went wrong'
-                    : error.message ?? 'something went wrong',
-            stack: NODE_ENV === "development" ? error.stack : undefined
-        })
-    })
-
-    app.listen(appConfig.port, () =>
-        console.log(`🚀 Server running on port ${appConfig.port}`)
-    )
+  app.listen(appConfig.port, () =>
+    console.log(`🚀 Server running on port ${appConfig.port}`),
+  );
 }
 
-export default bootstrap
+export default bootstrap;

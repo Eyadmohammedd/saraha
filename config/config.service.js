@@ -43,3 +43,9 @@ export const emailConfig = {
   user: process.env.EMAIL_USER,
   pass: process.env.EMAIL_PASS,
 };
+// ================= upload =================
+export const uploadConfig = {
+  allowedImageTypes: ["image/jpeg", "image/png", "image/jpg"],
+  maxFileSize: 2 * 1024 * 1024, // 2MB
+};
+uploadDir: "./uploads"

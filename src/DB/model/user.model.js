@@ -51,8 +51,7 @@ const userSchema = new mongoose.Schema(
     },
     profilePicture: String,
     coverprofilePicture: [String],
-    otp: Number,
-    otpExpires: Date,
+ 
     isVerified: {
       type: Boolean,
       default: false,
@@ -67,6 +66,11 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    role: {
+  type: String,
+  enum: ["USER", "ADMIN"],
+  default: "USER",
+},
   },
   {
     Collection: "Saraha_USERS",

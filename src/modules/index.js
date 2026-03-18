@@ -1,2 +1,2 @@
-export { authRouter } from "./auth/index.js";
-export { userRouter } from "./user/index.js";
+export { default as authRouter } from "./auth/auth.controller.js";
+export { default as userRouter } from "./user/user.controller.js";

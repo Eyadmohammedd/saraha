@@ -3,7 +3,7 @@ import { genSalt, hash, compare } from "bcrypt";
 
 export const generateHash = async (
   plaintext,
-  salt = SALT_ROUND,
+  salt = securityConfig.saltRounds,
   minor = "b"
 ) => {
   if (!plaintext || typeof plaintext !== "string") {

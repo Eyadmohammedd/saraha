@@ -1,17 +1,28 @@
 import jwt from "jsonwebtoken";
 import { jwtConfig } from "../../../../config/config.service.js";
-export const generateAccessToken = (payload) => {
-  return jwt.sign(payload, jwtConfig.privateKey, {
-    algorithm: "RS256",
-    expiresIn: jwtConfig.accessExpiresIn,
-  });
+
+export const generateAccessToken = ({ id, role }) => {
+  return jwt.sign(
+    { id, role },
+    jwtConfig.privateKey,
+    {
+      algorithm: "RS256",
+      expiresIn: jwtConfig.accessExpiresIn,
+      audience: role === "ADMIN" ? "admin" : "user",
+    }
+  );
 };
 
-export const generateRefreshToken = (payload) => {
-  return jwt.sign(payload, jwtConfig.privateKey, {
-    algorithm: "RS256",
-    expiresIn: jwtConfig.refreshExpiresIn,
-  });
+export const generateRefreshToken = ({ id, role }) => {
+  return jwt.sign(
+    { id, role },
+    jwtConfig.privateKey,
+    {
+      algorithm: "RS256",
+      expiresIn: jwtConfig.refreshExpiresIn,
+      audience: role === "ADMIN" ? "admin" : "user",
+    }
+  );
 };
 
 export const verifyAccessToken = (token) => {
